@@ -1,5 +1,7 @@
 # 📎 shortlink-api-gateway
 
+A side project for experimenting with distributed architecture, observability (OpenTelemetry), and service communication (gRPC).
+
 This is the **API Gateway** service for the distributed URL shortener system.  
 It handles client requests, forwards them to internal services (via gRPC), and returns the results.
 
