@@ -97,6 +97,7 @@ service UrlPublicAPI {
 - [x] Dockerize Gateway + Tempo + Grafana stack
 - [ ] Implement gRPC client to URL service
 - [ ] Unit testing and integration tests
+- [ ] Inject handler
 
 ---
 

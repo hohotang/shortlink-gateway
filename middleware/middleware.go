@@ -1,14 +1,37 @@
-package server
+package middleware
 
 import (
+	"shortlink-gateway/internal/config"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
-func LoggingMiddleware() gin.HandlerFunc {
+type middleware struct {
+	config *config.Config
+}
+
+type Middleware interface {
+	Otel() gin.HandlerFunc
+	LoggingMiddleware() gin.HandlerFunc
+}
+
+func NewMiddleware(
+	config *config.Config,
+) Middleware {
+	return &middleware{
+		config: config,
+	}
+}
+
+func (m *middleware) Otel() gin.HandlerFunc {
+	return otelgin.Middleware(m.config.ServiceName)
+}
+
+func (m *middleware) LoggingMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
 

@@ -3,9 +3,9 @@ package server
 import (
 	"fmt"
 
+	"shortlink-gateway/engine"
 	"shortlink-gateway/internal/config"
-
-	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
+	"shortlink-gateway/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -16,17 +16,20 @@ type Server struct {
 }
 
 func New(cfg *config.Config) *Server {
-	r := gin.New()
 
 	// 中介層：自訂 log middleware + recovery
-	r.Use(otelgin.Middleware("api-gateway")) // 這會自動產生 root span
-	r.Use(LoggingMiddleware())
-	r.Use(gin.Recovery())
+	// r.Use(otelgin.Middleware(cfg.ServiceName)) // 這會自動產生 root span
+	// r.Use(LoggingMiddleware())
+	// r.Use(gin.Recovery())
 
-	registerRoutes(r)
+	mw := middleware.NewMiddleware(cfg)
+	// engine
+	engine := engine.NewEngine(cfg)
+
+	registerRoutes(engine, mw)
 
 	return &Server{
-		router: r,
+		router: engine,
 		config: cfg,
 	}
 }
