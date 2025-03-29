@@ -11,6 +11,8 @@ type Config struct {
 	Port           int    `mapstructure:"port"`
 	Env            string `mapstructure:"env"`
 	URLServiceHost string `mapstructure:"url_service_host"`
+	ServiceName    string `mapstructure:"service_name"`
+	OTLPEndpoint   string `mapstructure:"otel_exporter_otlp_endpoint"`
 }
 
 func Load() *Config {

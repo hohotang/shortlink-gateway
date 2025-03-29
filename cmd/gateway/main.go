@@ -17,8 +17,7 @@ func main() {
 	logger.Init("api-gateway", cfg.Env)
 	defer logger.Sync()
 
-	// 初始化 OpenTelemetry (stdout exporter)
-	otel.Init("api-gateway")
+	otel.Init(cfg)
 	defer otel.Shutdown(context.Background())
 
 	logger.L().Info("🚀 Starting API Gateway...",

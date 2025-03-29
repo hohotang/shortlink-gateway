@@ -1,0 +1,35 @@
+services:
+  gateway:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - SHORTLINK_PORT=8080
+      - SHORTLINK_ENV=local
+      - OTEL_EXPORTER_OTLP_ENDPOINT=tempo:4318
+    depends_on:
+      - tempo
+
+  tempo:
+    image: grafana/tempo:latest
+    container_name: tempo
+    ports:
+      - "4318:4318" # OTLP gRPC port
+      - "3200:3200" # query api port
+    command: ["-config.file=/etc/tempo.yaml"]
+    volumes:
+      - ./tempo/tempo.yaml:/etc/tempo.yaml
+
+  grafana:
+    image: grafana/grafana-oss
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - tempo
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - grafana-storage:/var/lib/grafana
+
+volumes:
+  grafana-storage:

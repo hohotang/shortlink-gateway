@@ -8,10 +8,11 @@ It handles client requests, forwards them to internal services (via gRPC), and r
 ## 📌 Features
 
 - Accepts **HTTP REST API** from clients
-- Forwards requests to `shortlink-url-service` via **gRPC`
+- Forwards requests to `shortlink-url-service` via **gRPC**
 - Provides endpoints to:
   - Shorten a URL
   - Expand a short link
+- Integrates with **OpenTelemetry** and **Grafana Tempo** for distributed tracing
 
 ---
 
@@ -24,16 +25,17 @@ shortlink-api-gateway/
 │   └── gateway/
 │       └── main.go
 ├── internal/
-│   ├── server/          # regist server and router
-│   ├── handler/         # HTTP/gRPC handlers
-│   ├── service/         # gRPC client to url-service
-│   ├── logger/          # logger
-│   ├── otel/            # opentelemetry
-│   └── config/          # Configuration loading
+│   ├── server/              # Server + router
+│   ├── handler/             # HTTP handlers
+│   ├── service/             # gRPC client to url-service
+│   ├── config/              # Configuration loader
+│   └── logger/              # zap logger integration
+│   └── otel/                # OpenTelemetry setup
 ├── proto/
-│   └── public/          # Proto file for client-facing API
-├── api/                 # HTTP router setup (e.g. Gin/Echo)
+│   └── public/              # Proto files
 ├── Dockerfile
+├── docker-compose.yml       # Compose file for local dev
+├── go.mod / go.sum  
 ├── Makefile
 └── README.md
 ```
@@ -44,24 +46,25 @@ shortlink-api-gateway/
 
 ### Prerequisites
 
-- Go 1.20+
-- protoc & `protoc-gen-go`, `protoc-gen-go-grpc`
-- Docker (optional)
-- `shortlink-url-service` running locally or remotely
+- Go 1.24+
+- Docker + Docker Compose
 
-### Install dependencies
+### Run locally with Docker Compose
 
 ```bash
-go mod tidy
+docker-compose up --build
 ```
 
-### Run locally
+This will launch:
+- `gateway` on `http://localhost:8080`
+- `Grafana` on `http://localhost:3000` (user: `admin`, pass: `admin`)
+- `Tempo` OTLP receiver on port `4318`
+
+### Run locally (without Docker)
 
 ```bash
-go run ./cmd/main.go
+go run ./cmd/gateway
 ```
-
-By default, the server runs at `http://localhost:8080`.
 
 ---
 
@@ -87,24 +90,18 @@ service UrlPublicAPI {
 
 ---
 
-## 🐳 Docker
-
-```bash
-docker build -t shortlink-api-gateway .
-docker run -p 8080:8080 shortlink-api-gateway
-```
-
----
-
 ## 📦 TODO (Next Steps)
 
-- [ ] Add gRPC client to connect with `url-service`
-- [ ] Add unit tests
-- [x] Add tracing and logging
-- [ ] Implement retry logic
+- [x] Add OpenTelemetry tracing via stdout
+- [x] Replace stdout exporter with OTLP exporter
+- [x] Dockerize Gateway + Tempo + Grafana stack
+- [ ] Implement gRPC client to URL service
+- [ ] Unit testing and integration tests
 
 ---
 
-## 🧠 License
+### View Traces in Grafana
 
-MIT License © YourName
+1. Visit [http://localhost:3000](http://localhost:3000)
+2. Go to **Explore > Tempo**
+3. Use `service.name = "api-gateway"` to filter traces
