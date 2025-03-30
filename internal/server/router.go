@@ -2,7 +2,7 @@ package server
 
 import (
 	"shortlink-gateway/internal/handler"
-	"shortlink-gateway/middleware"
+	"shortlink-gateway/internal/middleware"
 
 	"github.com/gin-gonic/gin"
 )

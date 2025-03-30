@@ -3,9 +3,9 @@ package server
 import (
 	"fmt"
 
-	"shortlink-gateway/engine"
 	"shortlink-gateway/internal/config"
-	"shortlink-gateway/middleware"
+	"shortlink-gateway/internal/engine"
+	"shortlink-gateway/internal/middleware"
 
 	"github.com/gin-gonic/gin"
 )
