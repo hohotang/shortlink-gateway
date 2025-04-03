@@ -1,5 +1,6 @@
 port: 8080
 env: "local"
-url_service_host: "url-service:50051"
 service_name: "api-gateway"
 otel_exporter_otlp_endpoint: "localhost:4318"
+use_grpc: false
+grpc_server_addr: "localhost:50051"

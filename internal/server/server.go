@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"log"
 
 	"shortlink-gateway/internal/config"
 	"shortlink-gateway/internal/engine"
@@ -25,7 +26,20 @@ func New(cfg *config.Config) *Server {
 	mw := middleware.NewMiddleware(cfg)
 
 	// Create services
-	urlService := service.NewURLService()
+	var urlService service.URLService
+
+	// Choose between mock or real gRPC client based on configuration
+	if cfg.UseGrpc {
+		grpcClient, err := service.NewURLGrpcClient(cfg.GrpcServerAddr)
+		if err != nil {
+			log.Printf("Failed to create gRPC client: %v, falling back to mock", err)
+			urlService = service.NewURLService()
+		} else {
+			urlService = service.NewURLServiceWithClient(grpcClient)
+		}
+	} else {
+		urlService = service.NewURLService() // Use default mock implementation
+	}
 
 	// Create handlers
 	shortlinkHandler := handler.NewShortlinkHandler(urlService)

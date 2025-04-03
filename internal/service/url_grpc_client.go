@@ -4,8 +4,11 @@ import (
 	"context"
 	"time"
 
-	pb "github.com/hohotang/shortlink-gateway/proto"
+	pb "shortlink-gateway/proto"
+
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
@@ -17,27 +20,37 @@ type URLGrpcClient struct {
 
 // NewURLGrpcClient creates a new URL service gRPC client
 func NewURLGrpcClient(serverAddr string) (*URLGrpcClient, error) {
-	// 設置連接超時
+	// Set connection timeout
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	// 創建到gRPC服務的連接
-	conn, err := grpc.DialContext(
-		ctx,
-		serverAddr,
+	options := []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithBlock(),
-	)
+		grpc.WithStatsHandler(otelgrpc.NewClientHandler()),
+	}
+	// Create connection to gRPC service
+	cc, err := grpc.NewClient(serverAddr, options...)
 	if err != nil {
 		return nil, err
 	}
 
-	// 創建gRPC客戶端
-	client := pb.NewURLServiceClient(conn)
+	// Connect to server
+	cc.Connect()
+
+	// Wait for connection to be ready or timeout
+	state := cc.GetState()
+	if state != connectivity.Ready {
+		if !cc.WaitForStateChange(ctx, state) {
+			return nil, ctx.Err()
+		}
+	}
+
+	// Create gRPC client
+	client := pb.NewURLServiceClient(cc)
 
 	return &URLGrpcClient{
 		client: client,
-		conn:   conn,
+		conn:   cc,
 	}, nil
 }
 
@@ -46,7 +59,7 @@ func (s *URLGrpcClient) ShortenURL(originalURL string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
-	// 調用gRPC方法
+	// Call gRPC method
 	resp, err := s.client.ShortenURL(ctx, &pb.ShortenURLRequest{
 		OriginalUrl: originalURL,
 	})
@@ -62,7 +75,7 @@ func (s *URLGrpcClient) ExpandURL(shortID string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
-	// 調用gRPC方法
+	// Call gRPC method
 	resp, err := s.client.ExpandURL(ctx, &pb.ExpandURLRequest{
 		ShortId: shortID,
 	})

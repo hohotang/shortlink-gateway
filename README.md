@@ -21,25 +21,37 @@ It handles client requests, forwards them to internal services (via gRPC), and r
 ## 🧱 Project Structure
 
 ```
-shortlink-api-gateway/
-├── go.mod
+shortlink-gateway/
 ├── cmd/
 │   └── gateway/
-│       └── main.go
+│       └── main.go              # Application entry point
 ├── internal/
-│   ├── server/              # Server + router
-│   ├── handler/             # HTTP handlers
-│   ├── service/             # gRPC client to url-service
-│   ├── config/              # Configuration loader
-│   └── logger/              # zap logger integration
-│   └── otel/                # OpenTelemetry setup
-├── proto/
-│   └── public/              # Proto files
-├── Dockerfile
-├── docker-compose.yml       # Compose file for local dev
-├── go.mod / go.sum  
-├── Makefile
-└── README.md
+│   ├── config/                  # Configuration loader
+│   ├── engine/                  # Gin engine setup
+│   ├── handler/                 # HTTP handlers
+│   │   ├── expand.go            # URL expansion handler
+│   │   └── shorten.go           # URL shortening handler
+│   ├── logger/                  # Zap logger integration
+│   ├── middleware/              # HTTP middleware
+│   ├── otel/                    # OpenTelemetry setup
+│   ├── server/                  # Server and router
+│   └── service/                 # Service layer implementation
+│       ├── url_service.go       # URLService interface and Mock implementation
+│       └── url_grpc_client.go   # gRPC client implementation
+├── proto/                       # Protocol Buffers definitions
+│   ├── shortlink.proto          # Service and message definitions
+│   ├── shortlink.pb.go          # Generated proto code
+│   └── shortlink_grpc.pb.go     # Generated gRPC code
+├── tempo/                       # Tempo distributed tracing config
+├── grafana/                     # Grafana visualization config
+├── .env                         # Environment variables
+├── .env_example                 # Environment variables example
+├── config.yaml                  # Application configuration
+├── docker-compose.yml           # Docker Compose configuration
+├── Dockerfile                   # Docker build file
+├── go.mod / go.sum              # Go module dependencies
+├── Makefile                     # Project build and management
+└── README.md                    # Project documentation
 ```
 
 ---
@@ -81,7 +93,7 @@ go run ./cmd/gateway
 
 ## 🧬 gRPC Public API
 
-Defined in `proto/public/public.proto`.
+Defined in `proto/shortlink.proto`.
 
 ```proto
 service UrlPublicAPI {
@@ -97,10 +109,11 @@ service UrlPublicAPI {
 - [x] Add OpenTelemetry tracing via stdout
 - [x] Replace stdout exporter with OTLP exporter
 - [x] Dockerize Gateway + Tempo + Grafana stack
-- [ ] Implement gRPC client to URL service
+- [x] Implement gRPC client to URL service
 - [ ] Unit testing and integration tests
-- [ ] Inject handler
+- [x] Inject handler
 - [ ] Add RateLimiter
+- [ ] Error Handle improvement
 
 ---
 
