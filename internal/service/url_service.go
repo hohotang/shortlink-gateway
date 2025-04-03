@@ -8,6 +8,7 @@ import (
 type URLService interface {
 	ShortenURL(originalURL string) (string, error)
 	ExpandURL(shortID string) (string, error)
+	Close() error // Add Close method for cleanup
 }
 
 // URLServiceImpl implements URLService interface
@@ -39,6 +40,14 @@ func (s *URLServiceImpl) ExpandURL(shortID string) (string, error) {
 	return s.client.ExpandURL(shortID)
 }
 
+// Close closes any resources held by the service
+func (s *URLServiceImpl) Close() error {
+	if closer, ok := s.client.(interface{ Close() error }); ok {
+		return closer.Close()
+	}
+	return nil
+}
+
 // MockURLService provides a local implementation for testing/development
 type MockURLService struct{}
 
@@ -60,4 +69,9 @@ func (s *MockURLService) ExpandURL(shortID string) (string, error) {
 	}
 
 	return "https://example.com/original-url", nil
+}
+
+// Close is a no-op for the mock service
+func (s *MockURLService) Close() error {
+	return nil
 }

@@ -1,8 +1,10 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"net/http"
 
 	"github.com/hohotang/shortlink-gateway/internal/config"
 	"github.com/hohotang/shortlink-gateway/internal/engine"
@@ -14,8 +16,10 @@ import (
 )
 
 type Server struct {
-	router *gin.Engine
-	config *config.Config
+	router     *gin.Engine
+	config     *config.Config
+	httpServer *http.Server
+	urlService service.URLService
 }
 
 func New(cfg *config.Config) *Server {
@@ -49,12 +53,38 @@ func New(cfg *config.Config) *Server {
 	router.InitRoute()
 
 	return &Server{
-		router: engine,
-		config: cfg,
+		router:     engine,
+		config:     cfg,
+		urlService: urlService,
 	}
 }
 
 func (s *Server) Run() error {
 	addr := fmt.Sprintf(":%d", s.config.Port)
-	return s.router.Run(addr)
+
+	s.httpServer = &http.Server{
+		Addr:    addr,
+		Handler: s.router,
+	}
+
+	return s.httpServer.ListenAndServe()
+}
+
+// Shutdown gracefully shuts down the server
+func (s *Server) Shutdown(ctx context.Context) error {
+	// First shutdown the HTTP server
+	var err error
+	if s.httpServer != nil {
+		err = s.httpServer.Shutdown(ctx)
+	}
+
+	// Then close the URL service
+	if s.urlService != nil {
+		closeErr := s.urlService.Close()
+		if err == nil {
+			err = closeErr
+		}
+	}
+
+	return err
 }
