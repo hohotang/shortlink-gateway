@@ -3,10 +3,11 @@ package main
 import (
 	"context"
 	"log"
-	"shortlink-gateway/internal/config"
-	"shortlink-gateway/internal/logger"
-	"shortlink-gateway/internal/otel"
-	"shortlink-gateway/internal/server"
+
+	"github.com/hohotang/shortlink-gateway/internal/config"
+	"github.com/hohotang/shortlink-gateway/internal/logger"
+	"github.com/hohotang/shortlink-gateway/internal/otel"
+	"github.com/hohotang/shortlink-gateway/internal/server"
 
 	"go.uber.org/zap"
 )

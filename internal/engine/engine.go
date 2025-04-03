@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"shortlink-gateway/internal/config"
+	"github.com/hohotang/shortlink-gateway/internal/config"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/gzip"

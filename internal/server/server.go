@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"log"
 
-	"shortlink-gateway/internal/config"
-	"shortlink-gateway/internal/engine"
-	"shortlink-gateway/internal/handler"
-	"shortlink-gateway/internal/middleware"
-	"shortlink-gateway/internal/service"
+	"github.com/hohotang/shortlink-gateway/internal/config"
+	"github.com/hohotang/shortlink-gateway/internal/engine"
+	"github.com/hohotang/shortlink-gateway/internal/handler"
+	"github.com/hohotang/shortlink-gateway/internal/middleware"
+	"github.com/hohotang/shortlink-gateway/internal/service"
 
 	"github.com/gin-gonic/gin"
 )

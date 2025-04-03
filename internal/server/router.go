@@ -1,8 +1,8 @@
 package server
 
 import (
-	"shortlink-gateway/internal/handler"
-	"shortlink-gateway/internal/middleware"
+	"github.com/hohotang/shortlink-gateway/internal/handler"
+	"github.com/hohotang/shortlink-gateway/internal/middleware"
 
 	"github.com/gin-gonic/gin"
 )

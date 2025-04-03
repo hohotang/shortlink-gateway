@@ -4,24 +4,19 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/hohotang/shortlink-gateway/internal/service"
 )
 
 type ShortlinkHandler struct {
 	// Dependencies can be injected here
-	URLService URLService
+	URLService service.URLService
 }
 
 // NewShortlinkHandler creates a new ShortlinkHandler with the given URLService
-func NewShortlinkHandler(urlService URLService) *ShortlinkHandler {
+func NewShortlinkHandler(urlService service.URLService) *ShortlinkHandler {
 	return &ShortlinkHandler{
 		URLService: urlService,
 	}
-}
-
-// URLService defines the interface for URL shortening service
-type URLService interface {
-	ShortenURL(originalURL string) (shortID string, err error)
-	ExpandURL(shortID string) (originalURL string, err error)
 }
 
 type ShortenRequest struct {

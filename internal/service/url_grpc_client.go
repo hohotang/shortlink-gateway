@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	pb "shortlink-gateway/proto"
+	pb "github.com/hohotang/shortlink-gateway/proto"
 
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"

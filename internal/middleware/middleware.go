@@ -1,8 +1,9 @@
 package middleware
 
 import (
-	"shortlink-gateway/internal/config"
 	"time"
+
+	"github.com/hohotang/shortlink-gateway/internal/config"
 
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"

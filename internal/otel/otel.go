@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"shortlink-gateway/internal/config"
+	"github.com/hohotang/shortlink-gateway/internal/config"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"

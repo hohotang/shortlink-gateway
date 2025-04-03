@@ -227,7 +227,7 @@ const file_proto_shortlink_proto_rawDesc = "" +
 	"URLService\x12I\n" +
 	"\n" +
 	"ShortenURL\x12\x1c.shortlink.ShortenURLRequest\x1a\x1d.shortlink.ShortenURLResponse\x12F\n" +
-	"\tExpandURL\x12\x1b.shortlink.ExpandURLRequest\x1a\x1c.shortlink.ExpandURLResponseB1Z/github.com/yourusername/shortlink-gateway/protob\x06proto3"
+	"\tExpandURL\x12\x1b.shortlink.ExpandURLRequest\x1a\x1c.shortlink.ExpandURLResponseB-Z+github.com/hohotang/shortlink-gateway/protob\x06proto3"
 
 var (
 	file_proto_shortlink_proto_rawDescOnce sync.Once
