@@ -5,7 +5,9 @@ import (
 
 	"shortlink-gateway/internal/config"
 	"shortlink-gateway/internal/engine"
+	"shortlink-gateway/internal/handler"
 	"shortlink-gateway/internal/middleware"
+	"shortlink-gateway/internal/service"
 
 	"github.com/gin-gonic/gin"
 )
@@ -16,17 +18,21 @@ type Server struct {
 }
 
 func New(cfg *config.Config) *Server {
-
-	// 中介層：自訂 log middleware + recovery
-	// r.Use(otelgin.Middleware(cfg.ServiceName)) // 這會自動產生 root span
-	// r.Use(LoggingMiddleware())
-	// r.Use(gin.Recovery())
-
-	mw := middleware.NewMiddleware(cfg)
-	// engine
+	// Create engine
 	engine := engine.NewEngine(cfg)
 
-	registerRoutes(engine, mw)
+	// Create middleware
+	mw := middleware.NewMiddleware(cfg)
+
+	// Create services
+	urlService := service.NewURLService()
+
+	// Create handlers
+	shortlinkHandler := handler.NewShortlinkHandler(urlService)
+
+	// Create and initialize router
+	router := NewRouter(engine, mw, shortlinkHandler)
+	router.InitRoute()
 
 	return &Server{
 		router: engine,

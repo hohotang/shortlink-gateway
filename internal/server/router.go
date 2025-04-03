@@ -7,11 +7,26 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func registerRoutes(r *gin.Engine, mw middleware.Middleware) {
-	root := r.Group("/")
-	root.Use(mw.Otel(), mw.LoggingMiddleware())
+type Router struct {
+	engine           *gin.Engine
+	middleware       middleware.Middleware
+	shortlinkHandler *handler.ShortlinkHandler
+}
+
+func NewRouter(engine *gin.Engine, mw middleware.Middleware, shortlinkHandler *handler.ShortlinkHandler) *Router {
+	return &Router{
+		engine:           engine,
+		middleware:       mw,
+		shortlinkHandler: shortlinkHandler,
+	}
+}
+
+// InitRoute registers all the routes
+func (r *Router) InitRoute() {
+	root := r.engine.Group("/")
+	root.Use(r.middleware.Otel(), r.middleware.LoggingMiddleware())
 	{
-		root.POST("/shorten", handler.Shorten)
-		root.GET("/:shortID", handler.Expand)
+		root.POST("/shorten", r.shortlinkHandler.Shorten)
+		root.GET("/:shortID", r.shortlinkHandler.Expand)
 	}
 }

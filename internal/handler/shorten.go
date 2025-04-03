@@ -6,11 +6,30 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type ShortlinkHandler struct {
+	// Dependencies can be injected here
+	URLService URLService
+}
+
+// NewShortlinkHandler creates a new ShortlinkHandler with the given URLService
+func NewShortlinkHandler(urlService URLService) *ShortlinkHandler {
+	return &ShortlinkHandler{
+		URLService: urlService,
+	}
+}
+
+// URLService defines the interface for URL shortening service
+type URLService interface {
+	ShortenURL(originalURL string) (shortID string, err error)
+	ExpandURL(shortID string) (originalURL string, err error)
+}
+
 type ShortenRequest struct {
 	OriginalURL string `json:"original_url"`
 }
 
-func Shorten(c *gin.Context) {
+// Shorten handles URL shortening requests
+func (h *ShortlinkHandler) Shorten(c *gin.Context) {
 	var req ShortenRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil || req.OriginalURL == "" {
@@ -18,8 +37,13 @@ func Shorten(c *gin.Context) {
 		return
 	}
 
-	// TODO: 呼叫 gRPC 的 url-service
-	shortID := "abc123"
+	// Call the injected URL service
+	shortID, err := h.URLService.ShortenURL(req.OriginalURL)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to shorten URL"})
+		return
+	}
+
 	shortURL := "http://localhost:8080/" + shortID
 
 	c.JSON(http.StatusOK, gin.H{"short_url": shortURL})

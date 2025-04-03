@@ -100,6 +100,7 @@ service UrlPublicAPI {
 - [ ] Implement gRPC client to URL service
 - [ ] Unit testing and integration tests
 - [ ] Inject handler
+- [ ] Add RateLimiter
 
 ---
 
