@@ -5,6 +5,10 @@ A side project for experimenting with distributed architecture, observability (O
 This is the **API Gateway** service for the distributed URL shortener system.  
 It handles client requests, forwards them to internal services (via gRPC), and returns the results.
 
+## 🎬 Demo
+
+![Shortlink Demo](demo/shortlink-demo.gif)
+
 ---
 
 ## 📌 Features
