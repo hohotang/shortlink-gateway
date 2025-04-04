@@ -34,7 +34,7 @@ func New(cfg *config.Config) *Server {
 
 	// Choose between mock or real gRPC client based on configuration
 	if cfg.UseGrpc {
-		grpcClient, err := service.NewURLGrpcClient(cfg.GrpcServerAddr)
+		grpcClient, err := service.NewURLGrpcClient(cfg.GrpcServerAddr, cfg)
 		if err != nil {
 			log.Printf("Failed to create gRPC client: %v, falling back to mock", err)
 			urlService = service.NewURLService()

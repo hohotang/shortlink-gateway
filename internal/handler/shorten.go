@@ -39,8 +39,8 @@ func (h *ShortlinkHandler) Shorten(c *gin.Context) {
 		return
 	}
 
-	// Call the injected URL service
-	shortID, err := h.URLService.ShortenURL(req.OriginalURL)
+	// Call the injected URL service with request context
+	shortID, err := h.URLService.ShortenURL(c.Request.Context(), req.OriginalURL)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to shorten URL"})
 		return

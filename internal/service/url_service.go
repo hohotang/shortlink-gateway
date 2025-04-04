@@ -1,13 +1,14 @@
 package service
 
 import (
+	"context"
 	"errors"
 )
 
 // URLService provides URL shortening functionality
 type URLService interface {
-	ShortenURL(originalURL string) (string, error)
-	ExpandURL(shortID string) (string, error)
+	ShortenURL(ctx context.Context, originalURL string) (string, error)
+	ExpandURL(ctx context.Context, shortID string) (string, error)
 	Close() error // Add Close method for cleanup
 }
 
@@ -31,13 +32,13 @@ func NewURLServiceWithClient(client URLService) URLService {
 }
 
 // ShortenURL creates a short URL from the original URL
-func (s *URLServiceImpl) ShortenURL(originalURL string) (string, error) {
-	return s.client.ShortenURL(originalURL)
+func (s *URLServiceImpl) ShortenURL(ctx context.Context, originalURL string) (string, error) {
+	return s.client.ShortenURL(ctx, originalURL)
 }
 
 // ExpandURL resolves a short URL to its original URL
-func (s *URLServiceImpl) ExpandURL(shortID string) (string, error) {
-	return s.client.ExpandURL(shortID)
+func (s *URLServiceImpl) ExpandURL(ctx context.Context, shortID string) (string, error) {
+	return s.client.ExpandURL(ctx, shortID)
 }
 
 // Close closes any resources held by the service
@@ -52,7 +53,7 @@ func (s *URLServiceImpl) Close() error {
 type MockURLService struct{}
 
 // ShortenURL creates a short URL from the original URL
-func (s *MockURLService) ShortenURL(originalURL string) (string, error) {
+func (s *MockURLService) ShortenURL(ctx context.Context, originalURL string) (string, error) {
 	// This is a mock implementation for testing
 	if originalURL == "" {
 		return "", errors.New("original URL cannot be empty")
@@ -62,7 +63,7 @@ func (s *MockURLService) ShortenURL(originalURL string) (string, error) {
 }
 
 // ExpandURL resolves a short URL to its original URL
-func (s *MockURLService) ExpandURL(shortID string) (string, error) {
+func (s *MockURLService) ExpandURL(ctx context.Context, shortID string) (string, error) {
 	// This is a mock implementation for testing
 	if shortID == "" {
 		return "", errors.New("short ID cannot be empty")

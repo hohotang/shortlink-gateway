@@ -23,8 +23,8 @@ func (h *ShortlinkHandler) Expand(c *gin.Context) {
 		return
 	}
 
-	// Call the injected URL service
-	originalURL, err := h.URLService.ExpandURL(shortID)
+	// Call the injected URL service with request context
+	originalURL, err := h.URLService.ExpandURL(c.Request.Context(), shortID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to expand URL"})
 		return

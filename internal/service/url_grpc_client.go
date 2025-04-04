@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
-	"time"
 
+	"github.com/hohotang/shortlink-gateway/internal/config"
 	pb "github.com/hohotang/shortlink-gateway/proto"
 
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
@@ -16,12 +16,13 @@ import (
 type URLGrpcClient struct {
 	client pb.URLServiceClient
 	conn   *grpc.ClientConn
+	cfg    *config.Config
 }
 
 // NewURLGrpcClient creates a new URL service gRPC client
-func NewURLGrpcClient(serverAddr string) (*URLGrpcClient, error) {
+func NewURLGrpcClient(serverAddr string, cfg *config.Config) (*URLGrpcClient, error) {
 	// Set connection timeout
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), cfg.GrpcTimeout)
 	defer cancel()
 
 	options := []grpc.DialOption{
@@ -51,12 +52,14 @@ func NewURLGrpcClient(serverAddr string) (*URLGrpcClient, error) {
 	return &URLGrpcClient{
 		client: client,
 		conn:   cc,
+		cfg:    cfg,
 	}, nil
 }
 
 // ShortenURL implements URLService.ShortenURL using gRPC
-func (s *URLGrpcClient) ShortenURL(originalURL string) (string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+func (s *URLGrpcClient) ShortenURL(ctx context.Context, originalURL string) (string, error) {
+	// Add timeout from config
+	ctx, cancel := context.WithTimeout(ctx, s.cfg.GrpcTimeout)
 	defer cancel()
 
 	// Call gRPC method
@@ -71,8 +74,9 @@ func (s *URLGrpcClient) ShortenURL(originalURL string) (string, error) {
 }
 
 // ExpandURL implements URLService.ExpandURL using gRPC
-func (s *URLGrpcClient) ExpandURL(shortID string) (string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+func (s *URLGrpcClient) ExpandURL(ctx context.Context, shortID string) (string, error) {
+	// Add timeout from config
+	ctx, cancel := context.WithTimeout(ctx, s.cfg.GrpcTimeout)
 	defer cancel()
 
 	// Call gRPC method
