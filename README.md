@@ -22,6 +22,64 @@ It handles client requests, forwards them to internal services (via gRPC), and r
 
 ---
 
+## 🔍 Observability Stack
+
+This project implements a modern observability stack using OpenTelemetry, Tempo and Grafana:
+
+### Components
+
+- **OpenTelemetry**: Framework for collecting traces, metrics and logs
+  - Automatically creates spans for HTTP requests via `otelgin` middleware
+  - Captures gRPC calls with `otelgrpc` stats handler
+  - Provides trace context propagation across service boundaries
+
+- **Tempo**: High-scale, cost-effective distributed tracing backend
+  - Stores all trace data without sampling
+  - Efficiently queries traces by TraceID
+  - Retains traces for 7 days by default
+
+- **Grafana**: Visualization platform for all observability data
+  - Provides trace exploration UI
+  - Shows service graphs and span details
+  - Offers unified view of the system behavior
+
+### How It Works
+
+1. When a request arrives at the gateway:
+   - HTTP middleware creates a root span with unique TraceID
+   - Context with TraceID propagates through the application
+   - Child spans are created for downstream operations
+
+2. When the gateway calls the URL service via gRPC:
+   - The parent context is passed to maintain trace continuity
+   - gRPC handler automatically creates child spans
+   - Trace shows complete request flow across services
+
+3. All spans are exported to Tempo via OTLP protocol:
+   - HTTP spans show route, method, status code
+   - gRPC spans show service name, method, status
+   - Custom attributes can be added to provide more context
+
+### Using the Observability Tools
+
+1. **View Request Traces**:
+   - Go to Grafana: `http://localhost:3000`
+   - Navigate to Explore > Tempo
+   - Search by service name: `service.name = "api-gateway"`
+   - Click any trace to see the detailed timeline
+
+2. **Analyze Performance**:
+   - Examine span durations to identify bottlenecks
+   - Look for anomalies in request patterns
+   - Filter by HTTP status codes to find errors
+
+3. **Debug Issues**:
+   - Trace through the entire request lifecycle
+   - See exactly where failures occur
+   - Compare successful vs failed requests
+
+---
+
 ## 🧱 Project Structure
 
 ```
@@ -118,11 +176,3 @@ service UrlPublicAPI {
 - [x] Inject handler
 - [ ] Add RateLimiter
 - [ ] Error Handle improvement
-
----
-
-### View Traces in Grafana
-
-1. Visit [http://localhost:3000](http://localhost:3000)
-2. Go to **Explore > Tempo**
-3. Use `service.name = "api-gateway"` to filter traces
