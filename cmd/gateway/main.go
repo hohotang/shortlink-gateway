@@ -1,5 +1,22 @@
 package main
 
+// @title           Shortlink Gateway API
+// @version         1.0
+// @description     A URL shortening service API
+// @termsOfService  http://swagger.io/terms/
+
+// @contact.name   API Support
+// @contact.url    http://www.hohotang.com/support
+// @contact.email  support@hohotang.com
+
+// @license.name  Apache 2.0
+// @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @host      localhost:8080
+// @BasePath  /
+
+// @securityDefinitions.basic  BasicAuth
+
 import (
 	"context"
 	"net/http"
@@ -13,6 +30,7 @@ import (
 	"github.com/hohotang/shortlink-gateway/internal/otel"
 	"github.com/hohotang/shortlink-gateway/internal/server"
 
+	_ "github.com/hohotang/shortlink-gateway/docs" // Import swagger docs
 	"go.uber.org/zap"
 )
 

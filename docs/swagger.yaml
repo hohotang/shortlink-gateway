@@ -1,0 +1,92 @@
+basePath: /
+definitions:
+  model.ShortenRequest:
+    properties:
+      original_url:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@hohotang.com
+    name: API Support
+    url: http://www.hohotang.com/support
+  description: A URL shortening service API
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Shortlink Gateway API
+  version: "1.0"
+paths:
+  /{shortID}:
+    get:
+      description: Redirects to the original URL from a short URL ID
+      parameters:
+      - description: Short URL ID
+        in: path
+        name: shortID
+        required: true
+        type: string
+      produces:
+      - text/html
+      responses:
+        "302":
+          description: Redirect to original URL
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Expand a short URL
+      tags:
+      - urls
+  /shorten:
+    post:
+      consumes:
+      - application/json
+      description: Creates a short URL from a long URL
+      parameters:
+      - description: URL to shorten
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.ShortenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Returns shortened URL
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Shorten a URL
+      tags:
+      - urls
+securityDefinitions:
+  BasicAuth:
+    type: basic
+swagger: "2.0"

@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/hohotang/shortlink-gateway/internal/model"
 	"github.com/hohotang/shortlink-gateway/internal/service"
 )
 
@@ -19,13 +20,19 @@ func NewShortlinkHandler(urlService service.URLService) *ShortlinkHandler {
 	}
 }
 
-type ShortenRequest struct {
-	OriginalURL string `json:"original_url"`
-}
-
 // Shorten handles URL shortening requests
+// @Summary      Shorten a URL
+// @Description  Creates a short URL from a long URL
+// @Tags         urls
+// @Accept       json
+// @Produce      json
+// @Param        request  body      model.ShortenRequest  true  "URL to shorten"
+// @Success      200      {object}  map[string]string  "Returns shortened URL"
+// @Failure      400      {object}  map[string]string  "Bad Request"
+// @Failure      500      {object}  map[string]string  "Internal Server Error"
+// @Router       /shorten [post]
 func (h *ShortlinkHandler) Shorten(c *gin.Context) {
-	var req ShortenRequest
+	var req model.ShortenRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil || req.OriginalURL == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})

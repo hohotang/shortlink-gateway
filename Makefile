@@ -1,4 +1,4 @@
-.PHONY: lint proto clean build run test
+.PHONY: lint proto clean build run test doc
 
 # Variables
 GO              := go
@@ -14,6 +14,7 @@ GOLINT          := golangci-lint
 PROTOC          := protoc
 PROTOC_GEN_GO   := protoc-gen-go
 PROTOC_GEN_GRPC := protoc-gen-go-grpc
+SWAG            := swag
 
 # Detect OS
 ifeq ($(OS),Windows_NT)
@@ -39,6 +40,11 @@ proto-check:
 	@$(WHICH_CMD) $(PROTOC_GEN_GRPC) >$(NULL_DEV) || (echo "Installing protoc-gen-go-grpc..." && \
 		go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest)
 
+# Check if swag is installed
+swag-check:
+	@$(WHICH_CMD) $(SWAG) >$(NULL_DEV) || (echo "$(SWAG) not installed. Installing..." && \
+		go install github.com/swaggo/swag/cmd/swag@latest)
+
 # Lint the Go code
 lint: lint-check
 	$(GOLINT) run ./...
@@ -48,6 +54,10 @@ proto: proto-check
 	$(PROTOC) --go_out=$(GO_OUT_DIR) --go_opt=paths=source_relative \
 		--go-grpc_out=$(GO_OUT_DIR) --go-grpc_opt=paths=source_relative \
 		$(PROTO_DIR)/*.proto
+
+# Generate Swagger documentation
+doc: swag-check
+	$(SWAG) init -g cmd/gateway/main.go --output docs
 
 # Clean generated files
 clean:
@@ -61,11 +71,11 @@ endif
 
 # Build the application
 build:
-	$(GO) build -o $(BINARY_NAME) ./cmd/main.go
+	$(GO) build -o $(BINARY_NAME) ./cmd/gateway/main.go
 
 # Run the application
 run:
-	$(GO) run ./cmd/main.go
+	$(GO) run ./cmd/gateway/main.go
 
 # Run tests
 test:
