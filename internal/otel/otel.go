@@ -9,6 +9,7 @@ import (
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
+	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
@@ -38,6 +39,12 @@ func Init(cfg *config.Config) {
 	)
 
 	otel.SetTracerProvider(tp)
+
+	// Set up propagation for cross-service context transfer
+	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(
+		propagation.TraceContext{},
+		propagation.Baggage{},
+	))
 }
 
 // Shutdown flushes and shuts down the trace provider

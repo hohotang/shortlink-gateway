@@ -79,6 +79,7 @@ This project implements a modern observability stack using OpenTelemetry, Tempo 
    - Compare successful vs failed requests
 ![Grafana Demo 1](demo/grafana1.png)
 ![Grafana Demo 2](demo/grafana2.png)
+![Grafana Demo 3](demo/grafana3.png)
 ---
 
 ## 🧱 Project Structure
