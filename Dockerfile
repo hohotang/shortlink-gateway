@@ -1,19 +1,24 @@
 # syntax=docker/dockerfile:1.4
 
-FROM golang:1.24.1 AS builder
+# Base image with full compatibility
+FROM golang:1.24.1
 
+# Set working directory
 WORKDIR /app
 
-COPY go.mod go.sum ./
+# Copy source code
+COPY . .
+
+# Download dependencies
 RUN go mod download
 
-COPY . .
-RUN go build -o gateway ./cmd/gateway
+# Build the application with verbose output
+RUN go build -v -o gateway ./cmd/gateway && \
+    chmod +x gateway && \
+    ls -la
 
-# ---- production image ----
-FROM alpine:latest
-WORKDIR /app
-COPY --from=builder /app/gateway .
-
+# Expose port
 EXPOSE 8080
+
+# Keep container running for debugging
 CMD ["./gateway"]
