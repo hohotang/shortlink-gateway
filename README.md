@@ -14,11 +14,43 @@ It handles client requests, forwards them to internal services (via gRPC), and r
 ## 📌 Features
 
 - Accepts **HTTP REST API** from clients
-- Forwards requests to `shortlink-url-service` via **gRPC**
+- Forwards requests to `shortlink-core` via **gRPC**
 - Provides endpoints to:
   - Shorten a URL
   - Expand a short link
 - Integrates with **OpenTelemetry** and **Grafana Tempo** for distributed tracing
+
+---
+
+## 🔗 System Architecture
+
+This service is part of a two-tier microservice architecture:
+
+1. **API Gateway (this repo)**: 
+   - Handles HTTP requests from clients
+   - Performs request validation
+   - Forwards requests to the core service
+   - Manages observability (tracing, logging)
+
+2. **[Core Service](https://github.com/hohotang/shortlink-core)**:
+   - Provides URL shortening/expansion logic
+   - Manages storage (PostgreSQL/Redis)
+   - Generates short IDs using Snowflake algorithm
+   - Exposes functionality via gRPC API
+
+
+```
+┌─────────────┐        gRPC        ┌─────────────┐
+│ API GATEWAY │───────────────────→│ CORE SERVICE│
+└─────────────┘                    └─────────────┘
+  (this repo)                      (shortlink-core)
+```
+
+The separation allows for:
+- Independent scaling of the API layer and core logic
+- Separation of concerns (HTTP handling vs. business logic)
+- Optimized communication between services (gRPC)
+- Potential for multiple different frontends sharing the same core
 
 ---
 
@@ -127,6 +159,22 @@ shortlink-gateway/
 - Go 1.24+
 - Docker + Docker Compose
 
+### Deployment Order
+
+
+1. **First**: Start the shortlink-core services
+   ```bash
+   # Start the core services and its dependencies (PostgreSQL, Redis)
+   cd ../shortlink-core && docker-compose up -d
+   ```
+
+2. **Second**: Start this gateway
+   ```bash
+   cd ../shortlink-gateway && docker-compose up -d
+   ```
+
+Make sure the `docker-compose.yml` is configured to connect to the external network created by the core service.
+
 ### Run locally with Docker Compose
 
 ```bash
@@ -138,7 +186,7 @@ This will launch:
 - `Grafana` on `http://localhost:3000` (user: `admin`, pass: `admin`)
 - `Tempo` OTLP receiver on port `4318`
 
-### Run locally (without Docker)
+### Run locally (without Docker, stop gateway on docker-compose first)
 
 ```bash
 go run ./cmd/gateway
