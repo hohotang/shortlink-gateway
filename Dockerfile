@@ -1,24 +1,34 @@
-# syntax=docker/dockerfile:1.4
-
-# Base image with full compatibility
-FROM golang:1.24.1
+# Build stage
+FROM golang:1.24.1-alpine AS builder
 
 # Set working directory
-WORKDIR /app
+WORKDIR /build
+
+# Copy go.mod and go.sum first to leverage Docker cache
+COPY go.mod go.sum ./
+RUN go mod download
 
 # Copy source code
 COPY . .
 
-# Download dependencies
-RUN go mod download
+# Build with static linking
+RUN CGO_ENABLED=0 GOOS=linux go build  -o gateway ./cmd/gateway
 
-# Build the application with verbose output
-RUN go build -v -o gateway ./cmd/gateway && \
-    chmod +x gateway && \
-    ls -la
+# Final lightweight stage
+FROM alpine:latest
+
+# Install runtime dependencies
+RUN apk add --no-cache ca-certificates tzdata
+
+# Set working directory
+WORKDIR /app
+
+# Copy binary from builder stage
+COPY --from=builder /build/gateway .
+COPY config.yaml .
 
 # Expose port
 EXPOSE 8080
 
-# Keep container running for debugging
+# Run the application
 CMD ["./gateway"]
