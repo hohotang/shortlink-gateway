@@ -226,3 +226,4 @@ service UrlPublicAPI {
 - [x] Inject handler
 - [ ] Add RateLimiter
 - [ ] Error Handle improvement
+- [ ] Inject Logger instead of global logger
