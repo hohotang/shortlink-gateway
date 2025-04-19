@@ -42,13 +42,14 @@ func main() {
 
 	otel.Init(cfg)
 	defer otel.Shutdown(context.Background())
+	logger := logger.L()
 
-	logger.L().Info("🚀 Starting API Gateway...",
+	logger.Info("🚀 Starting API Gateway...",
 		zap.Int("port", cfg.Port),
 		zap.String("env", cfg.Env),
 	)
 
-	srv := server.New(cfg)
+	srv := server.New(cfg, logger)
 
 	// Create a channel to listen for OS signals
 	sigChan := make(chan os.Signal, 1)
@@ -57,15 +58,15 @@ func main() {
 	// Run server in a goroutine
 	go func() {
 		if err := srv.Run(); err != nil && err != http.ErrServerClosed {
-			logger.L().Fatal("Server failed to start", zap.Error(err))
+			logger.Fatal("Server failed to start", zap.Error(err))
 		}
 	}()
 
-	logger.L().Info("Server started and listening", zap.Int("port", cfg.Port))
+	logger.Info("Server started and listening", zap.Int("port", cfg.Port))
 
 	// Block until we receive a signal
 	sig := <-sigChan
-	logger.L().Info("Received shutdown signal", zap.String("signal", sig.String()))
+	logger.Info("Received shutdown signal", zap.String("signal", sig.String()))
 
 	// Create a context with timeout for shutdown
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -73,9 +74,9 @@ func main() {
 
 	// Attempt graceful shutdown
 	if err := srv.Shutdown(ctx); err != nil {
-		logger.L().Error("Server forced to shutdown", zap.Error(err))
+		logger.Error("Server forced to shutdown", zap.Error(err))
 		os.Exit(1)
 	}
 
-	logger.L().Info("Server gracefully stopped")
+	logger.Info("Server gracefully stopped")
 }

@@ -4,6 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/hohotang/shortlink-gateway/internal/middleware"
+	"go.uber.org/zap"
 )
 
 // Expand handles URL expansion requests
@@ -26,6 +28,8 @@ func (h *ShortlinkHandler) Expand(c *gin.Context) {
 	// Call the injected URL service with request context
 	originalURL, err := h.URLService.ExpandURL(c.Request.Context(), shortID)
 	if err != nil {
+		logger := middleware.GetLogger(c.Request.Context())
+		logger.Error("Failed to expand URL", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to expand URL"})
 		return
 	}

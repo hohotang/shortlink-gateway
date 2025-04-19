@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"net/http"
 	"time"
@@ -14,6 +15,10 @@ import (
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
+
+type contextKey struct{}
+
+var loggerKey = contextKey{}
 
 // responseBodyWriter is a struct used to capture response content
 type responseBodyWriter struct {
@@ -35,6 +40,7 @@ func (r *responseBodyWriter) WriteString(s string) (int, error) {
 
 type middleware struct {
 	config *config.Config
+	logger *zap.Logger
 }
 
 type Middleware interface {
@@ -44,14 +50,28 @@ type Middleware interface {
 
 func NewMiddleware(
 	config *config.Config,
+	logger *zap.Logger,
 ) Middleware {
 	return &middleware{
 		config: config,
+		logger: logger,
 	}
 }
 
 func (m *middleware) Otel() gin.HandlerFunc {
 	return otelgin.Middleware(m.config.ServiceName)
+}
+
+func WithLogger(ctx context.Context, logger *zap.Logger) context.Context {
+	return context.WithValue(ctx, loggerKey, logger)
+}
+
+func GetLogger(ctx context.Context) *zap.Logger {
+	logger, ok := ctx.Value(loggerKey).(*zap.Logger)
+	if !ok {
+		return zap.L() // fallback to global logger
+	}
+	return logger
 }
 
 func (m *middleware) LoggingMiddleware() gin.HandlerFunc {
@@ -94,6 +114,9 @@ func (m *middleware) LoggingMiddleware() gin.HandlerFunc {
 			)
 		}
 
+		ctx := WithLogger(c.Request.Context(), m.logger)
+		c.Request = c.Request.WithContext(ctx)
+
 		c.Next()
 
 		// After handler execution
@@ -107,7 +130,7 @@ func (m *middleware) LoggingMiddleware() gin.HandlerFunc {
 		}
 
 		// Log complete request and response information
-		zap.L().Info("HTTP request",
+		m.logger.Info("HTTP request",
 			zap.String("method", method),
 			zap.String("path", path),
 			zap.Int("status", status),

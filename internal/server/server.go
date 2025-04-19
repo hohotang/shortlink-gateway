@@ -11,6 +11,7 @@ import (
 	"github.com/hohotang/shortlink-gateway/internal/handler"
 	"github.com/hohotang/shortlink-gateway/internal/middleware"
 	"github.com/hohotang/shortlink-gateway/internal/service"
+	"go.uber.org/zap"
 
 	"github.com/gin-gonic/gin"
 )
@@ -22,12 +23,12 @@ type Server struct {
 	urlService service.URLService
 }
 
-func New(cfg *config.Config) *Server {
+func New(cfg *config.Config, logger *zap.Logger) *Server {
 	// Create engine
 	engine := engine.NewEngine(cfg)
 
 	// Create middleware
-	mw := middleware.NewMiddleware(cfg)
+	mw := middleware.NewMiddleware(cfg, logger)
 
 	// Create services
 	var urlService service.URLService

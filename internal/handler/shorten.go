@@ -4,8 +4,10 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/hohotang/shortlink-gateway/internal/middleware"
 	"github.com/hohotang/shortlink-gateway/internal/model"
 	"github.com/hohotang/shortlink-gateway/internal/service"
+	"go.uber.org/zap"
 )
 
 type ShortlinkHandler struct {
@@ -42,6 +44,8 @@ func (h *ShortlinkHandler) Shorten(c *gin.Context) {
 	// Call the injected URL service with request context
 	shortID, err := h.URLService.ShortenURL(c.Request.Context(), req.OriginalURL)
 	if err != nil {
+		logger := middleware.GetLogger(c.Request.Context())
+		logger.Error("Failed to shorten URL", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to shorten URL"})
 		return
 	}
