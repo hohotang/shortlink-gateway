@@ -19,7 +19,7 @@ info:
   title: Shortlink Gateway API
   version: "1.0"
 paths:
-  /{shortID}:
+  /v1/expand/{shortID}:
     get:
       description: Redirects to the original URL from a short URL ID
       parameters:
@@ -50,7 +50,7 @@ paths:
       summary: Expand a short URL
       tags:
       - urls
-  /shorten:
+  /v1/shorten:
     post:
       consumes:
       - application/json

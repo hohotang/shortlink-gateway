@@ -17,7 +17,7 @@ import (
 // @Success      302      {string}  string  "Redirect to original URL"
 // @Failure      400      {object}  map[string]string  "Bad Request"
 // @Failure      500      {object}  map[string]string  "Internal Server Error"
-// @Router       /{shortID} [get]
+// @Router       /v1/expand/{shortID} [get]
 func (h *ShortlinkHandler) Expand(c *gin.Context) {
 	shortID := c.Param("shortID")
 	if shortID == "" {

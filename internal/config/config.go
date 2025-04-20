@@ -8,40 +8,56 @@ import (
 	"github.com/spf13/viper"
 )
 
+// Config holds application configuration
 type Config struct {
-	Port           int           `mapstructure:"port"`
-	Env            string        `mapstructure:"env"`
-	ServiceName    string        `mapstructure:"service_name"`
-	OTLPEndpoint   string        `mapstructure:"otel_exporter_otlp_endpoint"`
-	UseGrpc        bool          `mapstructure:"use_grpc"`
-	GrpcServerAddr string        `mapstructure:"grpc_server_addr"`
-	GrpcTimeout    time.Duration `mapstructure:"grpc_timeout"` // Timeout in seconds for gRPC calls
+	Port            int           `mapstructure:"port"`
+	Env             string        `mapstructure:"env"`
+	ServiceName     string        `mapstructure:"service_name"`
+	OTLPEndpoint    string        `mapstructure:"otel_exporter_otlp_endpoint"`
+	TracesEndpoint  string        `mapstructure:"traces_endpoint"`
+	MetricsEndpoint string        `mapstructure:"metrics_endpoint"`
+	UseGrpc         bool          `mapstructure:"use_grpc"`
+	GrpcServerAddr  string        `mapstructure:"grpc_server_addr"`
+	GrpcTimeout     time.Duration `mapstructure:"grpc_timeout"`
 }
 
+// Load loads configuration from config.yaml and environment variables
 func Load() *Config {
 	v := viper.New()
 
+	// Set default values
+	v.SetDefault("port", 8080)
+	v.SetDefault("env", "development")
+	v.SetDefault("service_name", "api-gateway")
+	v.SetDefault("otel_exporter_otlp_endpoint", "localhost:4318")
+	v.SetDefault("traces_endpoint", "localhost:4318")
+	v.SetDefault("metrics_endpoint", "localhost:9090")
+	v.SetDefault("use_grpc", true)
+	v.SetDefault("grpc_server_addr", "localhost:50051")
 	v.SetDefault("grpc_timeout", 5*time.Second)
 
-	// 設定 config 檔案來源
-	v.SetConfigName("config") // config.yaml
+	// Set configuration file
+	v.SetConfigName("config")
 	v.SetConfigType("yaml")
-	v.AddConfigPath(".")        // 專案根目錄
-	v.AddConfigPath("./config") // 也支援 config/ 資料夾
+	v.AddConfigPath(".")
 
-	// 支援讀取環境變數：PORT、ENV 等（自動覆蓋）
-	v.SetEnvPrefix("SHORTLINK") // 例如 SHORTLINK_PORT
+	// Automatically replace dots with underscores for environment variables
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+
+	// Load config from environment variables with prefix SHORTLINK_
+	v.SetEnvPrefix("SHORTLINK")
 	v.AutomaticEnv()
 
-	// 讀取 config.yaml（如果有）
+	// Read configuration file
 	if err := v.ReadInConfig(); err != nil {
-		log.Printf("⚠️ config.yaml not found: %v", err)
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			log.Printf("Error reading config file: %v", err)
+		}
 	}
 
 	var cfg Config
 	if err := v.Unmarshal(&cfg); err != nil {
-		log.Fatalf("❌ Failed to load config: %v", err)
+		log.Fatalf("Error unmarshaling config: %v", err)
 	}
 
 	return &cfg

@@ -8,10 +8,12 @@ import (
 	"time"
 
 	"github.com/hohotang/shortlink-gateway/internal/config"
+	"github.com/hohotang/shortlink-gateway/internal/otel"
 
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
@@ -39,22 +41,26 @@ func (r *responseBodyWriter) WriteString(s string) (int, error) {
 }
 
 type middleware struct {
-	config *config.Config
-	logger *zap.Logger
+	config    *config.Config
+	logger    *zap.Logger
+	telemetry *otel.Telemetry
 }
 
 type Middleware interface {
 	Otel() gin.HandlerFunc
 	LoggingMiddleware() gin.HandlerFunc
+	MetricsMiddleware() gin.HandlerFunc
 }
 
 func NewMiddleware(
 	config *config.Config,
 	logger *zap.Logger,
+	telemetry *otel.Telemetry,
 ) Middleware {
 	return &middleware{
-		config: config,
-		logger: logger,
+		config:    config,
+		logger:    logger,
+		telemetry: telemetry,
 	}
 }
 
@@ -72,6 +78,31 @@ func GetLogger(ctx context.Context) *zap.Logger {
 		return zap.L() // fallback to global logger
 	}
 	return logger
+}
+
+// MetricsMiddleware records HTTP request metrics using OpenTelemetry
+func (m *middleware) MetricsMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		startTime := time.Now()
+
+		c.Next()
+
+		// Record metrics after the request is processed
+		duration := time.Since(startTime).Seconds()
+
+		// Add common attributes/labels
+		attrs := []attribute.KeyValue{
+			attribute.String("http.method", c.Request.Method),
+			attribute.String("http.route", c.FullPath()),
+			attribute.Int("http.status_code", c.Writer.Status()),
+		}
+
+		// Count the request
+		m.telemetry.Metrics.RequestCounter.Add(c.Request.Context(), 1, metric.WithAttributes(attrs...))
+
+		// Record the duration
+		m.telemetry.Metrics.RequestDuration.Record(c.Request.Context(), duration, metric.WithAttributes(attrs...))
+	}
 }
 
 func (m *middleware) LoggingMiddleware() gin.HandlerFunc {

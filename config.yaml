@@ -2,6 +2,8 @@ port: 8080
 env: "local"
 service_name: "api-gateway"
 otel_exporter_otlp_endpoint: "localhost:4318"
+traces_endpoint: "localhost:4318"
+metrics_endpoint: "localhost:9090"
 use_grpc: true
 grpc_server_addr: "localhost:50051"
 grpc_timeout: 5s

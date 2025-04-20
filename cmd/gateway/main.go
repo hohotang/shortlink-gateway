@@ -40,16 +40,28 @@ func main() {
 	logger.Init("api-gateway", cfg.Env)
 	defer logger.Sync()
 
-	otel.Init(cfg)
-	defer otel.Shutdown(context.Background())
-	logger := logger.L()
+	loggerInstance := logger.L()
 
-	logger.Info("🚀 Starting API Gateway...",
+	// Initialize OpenTelemetry with timeout
+	initCtx, initCancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer initCancel()
+
+	telemetry, err := otel.New(initCtx, cfg, loggerInstance)
+	if err != nil {
+		loggerInstance.Fatal("Failed to initialize telemetry", zap.Error(err))
+	}
+	defer func() {
+		if err := telemetry.Shutdown(context.Background()); err != nil {
+			loggerInstance.Error("Failed to shut down telemetry", zap.Error(err))
+		}
+	}()
+
+	loggerInstance.Info("🚀 Starting API Gateway...",
 		zap.Int("port", cfg.Port),
 		zap.String("env", cfg.Env),
 	)
 
-	srv := server.New(cfg, logger)
+	srv := server.New(cfg, loggerInstance, telemetry)
 
 	// Create a channel to listen for OS signals
 	sigChan := make(chan os.Signal, 1)
@@ -58,25 +70,25 @@ func main() {
 	// Run server in a goroutine
 	go func() {
 		if err := srv.Run(); err != nil && err != http.ErrServerClosed {
-			logger.Fatal("Server failed to start", zap.Error(err))
+			loggerInstance.Fatal("Server failed to start", zap.Error(err))
 		}
 	}()
 
-	logger.Info("Server started and listening", zap.Int("port", cfg.Port))
+	loggerInstance.Info("Server started and listening", zap.Int("port", cfg.Port))
 
 	// Block until we receive a signal
 	sig := <-sigChan
-	logger.Info("Received shutdown signal", zap.String("signal", sig.String()))
+	loggerInstance.Info("Received shutdown signal", zap.String("signal", sig.String()))
 
 	// Create a context with timeout for shutdown
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer shutdownCancel()
 
 	// Attempt graceful shutdown
-	if err := srv.Shutdown(ctx); err != nil {
-		logger.Error("Server forced to shutdown", zap.Error(err))
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		loggerInstance.Error("Server forced to shutdown", zap.Error(err))
 		os.Exit(1)
 	}
 
-	logger.Info("Server gracefully stopped")
+	loggerInstance.Info("Server gracefully stopped")
 }

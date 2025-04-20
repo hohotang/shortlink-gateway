@@ -112,6 +112,7 @@ This project implements a modern observability stack using OpenTelemetry, Tempo 
 ![Grafana Demo 1](demo/grafana1.png)
 ![Grafana Demo 2](demo/grafana2.png)
 ![Grafana Demo 3](demo/grafana3.png)
+![Grafana Demo 4](demo/grafana4.png)
 ---
 
 ## 🧱 Project Structure

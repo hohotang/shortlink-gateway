@@ -24,7 +24,54 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/shorten": {
+        "/v1/expand/{shortID}": {
+            "get": {
+                "description": "Redirects to the original URL from a short URL ID",
+                "produces": [
+                    "text/html"
+                ],
+                "tags": [
+                    "urls"
+                ],
+                "summary": "Expand a short URL",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Short URL ID",
+                        "name": "shortID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "302": {
+                        "description": "Redirect to original URL",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/shorten": {
             "post": {
                 "description": "Creates a short URL from a long URL",
                 "consumes": [
@@ -56,53 +103,6 @@ const docTemplate = `{
                             "additionalProperties": {
                                 "type": "string"
                             }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/{shortID}": {
-            "get": {
-                "description": "Redirects to the original URL from a short URL ID",
-                "produces": [
-                    "text/html"
-                ],
-                "tags": [
-                    "urls"
-                ],
-                "summary": "Expand a short URL",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Short URL ID",
-                        "name": "shortID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "302": {
-                        "description": "Redirect to original URL",
-                        "schema": {
-                            "type": "string"
                         }
                     },
                     "400": {

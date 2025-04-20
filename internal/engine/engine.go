@@ -33,7 +33,7 @@ func NewEngine(cfg *config.Config) *gin.Engine {
 	// 初始化 Gin 引擎
 	server := gin.New()
 	server.Use(cors.New(corsConfig))
-	server.Use(gzip.Gzip(gzip.DefaultCompression))
+	server.Use(gzip.Gzip(gzip.DefaultCompression, gzip.WithExcludedPaths([]string{"/metrics"})))
 
 	return server
 }

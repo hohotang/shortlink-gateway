@@ -10,6 +10,7 @@ import (
 	"github.com/hohotang/shortlink-gateway/internal/engine"
 	"github.com/hohotang/shortlink-gateway/internal/handler"
 	"github.com/hohotang/shortlink-gateway/internal/middleware"
+	"github.com/hohotang/shortlink-gateway/internal/otel"
 	"github.com/hohotang/shortlink-gateway/internal/service"
 	"go.uber.org/zap"
 
@@ -21,14 +22,15 @@ type Server struct {
 	config     *config.Config
 	httpServer *http.Server
 	urlService service.URLService
+	telemetry  *otel.Telemetry
 }
 
-func New(cfg *config.Config, logger *zap.Logger) *Server {
+func New(cfg *config.Config, logger *zap.Logger, telemetry *otel.Telemetry) *Server {
 	// Create engine
 	engine := engine.NewEngine(cfg)
 
 	// Create middleware
-	mw := middleware.NewMiddleware(cfg, logger)
+	mw := middleware.NewMiddleware(cfg, logger, telemetry)
 
 	// Create services
 	var urlService service.URLService
@@ -57,6 +59,7 @@ func New(cfg *config.Config, logger *zap.Logger) *Server {
 		router:     engine,
 		config:     cfg,
 		urlService: urlService,
+		telemetry:  telemetry,
 	}
 }
 

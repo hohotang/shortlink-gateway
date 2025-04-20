@@ -3,6 +3,7 @@ package server
 import (
 	"github.com/hohotang/shortlink-gateway/internal/handler"
 	"github.com/hohotang/shortlink-gateway/internal/middleware"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/hohotang/shortlink-gateway/docs" // swagger generated docs
@@ -26,12 +27,16 @@ func NewRouter(engine *gin.Engine, mw middleware.Middleware, shortlinkHandler *h
 
 // InitRoute registers all the routes
 func (r *Router) InitRoute() {
-	// API routes
-	root := r.engine.Group("/")
-	root.Use(r.middleware.Otel(), r.middleware.LoggingMiddleware())
+	// Metrics endpoint should be registered first and WITHOUT any middleware
+	// that might interfere with Prometheus scraping
+	r.engine.GET("/metrics", gin.WrapH(promhttp.Handler()))
+
+	// API routes with middleware
+	api := r.engine.Group("/")
+	api.Use(r.middleware.Otel(), r.middleware.LoggingMiddleware(), r.middleware.MetricsMiddleware())
 	{
-		root.POST("/shorten", r.shortlinkHandler.Shorten)
-		root.GET("/:shortID", r.shortlinkHandler.Expand)
+		api.POST("v1/shorten", r.shortlinkHandler.Shorten)
+		api.GET("v1/expand/:shortID", r.shortlinkHandler.Expand)
 	}
 
 	// Swagger documentation route

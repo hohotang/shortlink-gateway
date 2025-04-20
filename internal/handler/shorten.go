@@ -32,7 +32,7 @@ func NewShortlinkHandler(urlService service.URLService) *ShortlinkHandler {
 // @Success      200      {object}  map[string]string  "Returns shortened URL"
 // @Failure      400      {object}  map[string]string  "Bad Request"
 // @Failure      500      {object}  map[string]string  "Internal Server Error"
-// @Router       /shorten [post]
+// @Router       /v1/shorten [post]
 func (h *ShortlinkHandler) Shorten(c *gin.Context) {
 	var req model.ShortenRequest
 
