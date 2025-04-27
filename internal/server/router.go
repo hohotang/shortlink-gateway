@@ -33,7 +33,7 @@ func (r *Router) InitRoute() {
 
 	// API routes with middleware
 	api := r.engine.Group("/")
-	api.Use(r.middleware.Otel(), r.middleware.LoggingMiddleware(), r.middleware.MetricsMiddleware())
+	api.Use(r.middleware.Otel(), r.middleware.LoggingMiddleware(), r.middleware.MetricsMiddleware(), r.middleware.RecoveryMiddleware())
 	{
 		api.POST("v1/shorten", r.shortlinkHandler.Shorten)
 		api.GET("v1/expand/:shortID", r.shortlinkHandler.Expand)

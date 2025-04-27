@@ -3,8 +3,10 @@ package middleware
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"net/http"
+	"runtime/debug"
 	"time"
 
 	"github.com/hohotang/shortlink-gateway/internal/config"
@@ -50,6 +52,7 @@ type Middleware interface {
 	Otel() gin.HandlerFunc
 	LoggingMiddleware() gin.HandlerFunc
 	MetricsMiddleware() gin.HandlerFunc
+	RecoveryMiddleware() gin.HandlerFunc
 }
 
 func NewMiddleware(
@@ -188,4 +191,51 @@ func headersToString(headers http.Header) string {
 		}
 	}
 	return buf.String()
+}
+
+// RecoveryMiddleware captures panics, logs them with stack trace and returns 500 error
+func (m *middleware) RecoveryMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		defer func() {
+			if err := recover(); err != nil {
+				// Get stack trace
+				stack := debug.Stack()
+
+				// get context
+				ctx := c.Request.Context()
+				logger := GetLogger(ctx)
+
+				// Log the error with stack trace
+				logger.Error("Panic recovered",
+					zap.Any("error", err),
+					zap.String("stack", string(stack)),
+					zap.String("method", c.Request.Method),
+					zap.String("path", c.Request.URL.Path),
+				)
+
+				// Extract trace info if available
+				traceID := ""
+				if span := trace.SpanFromContext(c.Request.Context()); span != nil {
+					sc := span.SpanContext()
+					if sc.HasTraceID() {
+						traceID = sc.TraceID().String()
+					}
+
+					// Mark span as errored
+					span.SetAttributes(
+						attribute.String("error", fmt.Sprintf("%v", err)),
+						attribute.String("stack", string(stack)),
+					)
+				}
+
+				// Abort with 500
+				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+					"error":    "Internal Server Error",
+					"trace_id": traceID,
+				})
+			}
+		}()
+
+		c.Next()
+	}
 }
