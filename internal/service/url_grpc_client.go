@@ -8,7 +8,6 @@ import (
 
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
@@ -21,10 +20,6 @@ type URLGrpcClient struct {
 
 // NewURLGrpcClient creates a new URL service gRPC client
 func NewURLGrpcClient(serverAddr string, cfg *config.Config) (*URLGrpcClient, error) {
-	// Set connection timeout
-	ctx, cancel := context.WithTimeout(context.Background(), cfg.GrpcTimeout)
-	defer cancel()
-
 	options := []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithStatsHandler(otelgrpc.NewClientHandler()),
@@ -33,17 +28,6 @@ func NewURLGrpcClient(serverAddr string, cfg *config.Config) (*URLGrpcClient, er
 	cc, err := grpc.NewClient(serverAddr, options...)
 	if err != nil {
 		return nil, err
-	}
-
-	// Connect to server
-	cc.Connect()
-
-	// Wait for connection to be ready or timeout
-	state := cc.GetState()
-	if state != connectivity.Ready {
-		if !cc.WaitForStateChange(ctx, state) {
-			return nil, ctx.Err()
-		}
 	}
 
 	// Create gRPC client
